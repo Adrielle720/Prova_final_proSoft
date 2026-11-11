@@ -1,30 +1,37 @@
-import Database from 'better-sqlite3';
+import pg from 'pg';
 
-const db = new Database(process.env.DB_PATH || 'avaliacoes.db');
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS avaliacoes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    emailAvaliador TEXT NOT NULL,
-    emailAvaliado TEXT NOT NULL,
-    comentarios TEXT NOT NULL DEFAULT '',
-    nota INTEGER NOT NULL CHECK (nota BETWEEN 0 AND 10),
-    dataAvaliacao TEXT NOT NULL
-  )
-`);
-
-export function listarAvaliacoes() {
-  return db.prepare('SELECT * FROM avaliacoes ORDER BY dataAvaliacao DESC').all();
+export async function iniciarBanco() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tarefa (
+      id          SERIAL PRIMARY KEY,
+      projeto     TEXT        NOT NULL DEFAULT 'Geral',
+      titulo      TEXT        NOT NULL,
+      descricao   TEXT        NOT NULL DEFAULT '',
+      prioridade  TEXT        NOT NULL CHECK (prioridade IN ('baixa', 'media', 'alta')),
+      email       TEXT        NOT NULL,
+      criada_em   TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
 }
 
-export function criarAvaliacao({ emailAvaliador, emailAvaliado, comentarios, nota }) {
-  const dataAvaliacao = new Date().toISOString();
-  const r = db
-    .prepare(
-      `INSERT INTO avaliacoes (emailAvaliador, emailAvaliado, comentarios, nota, dataAvaliacao)
-       VALUES (?, ?, ?, ?, ?)`
-    )
-    .run(emailAvaliador, emailAvaliado, comentarios, nota, dataAvaliacao);
+export async function listarTarefas() {
+  const { rows } = await pool.query('SELECT * FROM tarefa ORDER BY criada_em DESC');
+  return rows;
+}
 
-  return { id: Number(r.lastInsertRowid), emailAvaliador, emailAvaliado, comentarios, nota, dataAvaliacao };
+export async function criarTarefa({ projeto, titulo, descricao, prioridade, email }) {
+  const { rows } = await pool.query(
+    `INSERT INTO tarefa (projeto, titulo, descricao, prioridade, email)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+    [projeto, titulo, descricao, prioridade, email]
+  );
+  return rows[0];
+}
+
+export async function deletarTarefa(id) {
+  const { rows } = await pool.query('DELETE FROM tarefa WHERE id = $1 RETURNING *', [id]);
+  return rows[0] ?? null;
 }

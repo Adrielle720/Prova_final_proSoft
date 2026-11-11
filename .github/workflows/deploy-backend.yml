@@ -41,5 +41,6 @@ jobs:
             git reset --hard origin/main
             cd backend
             npm ci --omit=dev
-            pm2 restart avaliacoes-api --update-env || pm2 start src/index.js --name avaliacoes-api
+            pm2 delete avaliacoes-api 2>/dev/null || true
+            pm2 restart tarefas-api --update-env || pm2 start src/index.js --name tarefas-api
             pm2 save
