@@ -59,7 +59,7 @@ Abra http://localhost:5173. O ADMIN vê o formulário e a lista; o USER vê só 
 1. Ubuntu 24.04, `t2.micro`/`t3.micro`. Security Group liberando as portas **22** e **3000**.
 2. Na máquina:
    ```bash
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
    sudo apt install -y nodejs git build-essential
    sudo npm install -g pm2
    git clone https://github.com/Adrielle720/Prova_final_proSoft.git ~/Prova_final_proSoft
