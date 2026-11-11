@@ -35,12 +35,31 @@ app.get('/avaliacoes', podeLer, (req, res) => {
   res.json(listarAvaliacoes());
 });
 
-app.post('/avaliacoes', podeCriar, (req, res) => {
+// E-mail do avaliador: vem do custom claim (Action do Auth0) ou, se faltar,
+// do endpoint /userinfo do Auth0 usando o próprio access token.
+const cacheEmails = new Map();
+async function emailDoUsuario(req) {
+  const doClaim = req.auth.payload[EMAIL_CLAIM];
+  if (doClaim) return doClaim;
+
+  const sub = req.auth.payload.sub;
+  if (cacheEmails.has(sub)) return cacheEmails.get(sub);
+
+  const resp = await fetch(new URL('userinfo', AUTH0_ISSUER), {
+    headers: { Authorization: req.headers.authorization },
+  });
+  if (!resp.ok) return null;
+  const { email } = await resp.json();
+  if (email) cacheEmails.set(sub, email);
+  return email ?? null;
+}
+
+app.post('/avaliacoes', podeCriar, async (req, res) => {
   const { emailAvaliado, comentarios = '', nota } = req.body ?? {};
-  const emailAvaliador = req.auth.payload[EMAIL_CLAIM];
+  const emailAvaliador = await emailDoUsuario(req);
 
   const erros = [];
-  if (!emailAvaliador) erros.push(`token sem o claim ${EMAIL_CLAIM} (configure a Action do Auth0)`);
+  if (!emailAvaliador) erros.push('não foi possível obter o e-mail do avaliador a partir do token');
   if (typeof emailAvaliado !== 'string' || !EMAIL_REGEX.test(emailAvaliado)) erros.push('emailAvaliado inválido');
   if (typeof comentarios !== 'string') erros.push('comentarios deve ser texto');
   if (!Number.isInteger(nota) || nota < 0 || nota > 10) erros.push('nota deve ser um inteiro de 0 a 10');
