@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #f5f6f8; color: #1f2328; }
+main { max-width: 960px; margin: 0 auto; padding: 16px; }
+.centro { text-align: center; margin-top: 15vh; }
+header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+header div { display: flex; align-items: center; gap: 12px; }
+section { background: #fff; border-radius: 8px; padding: 16px; margin-top: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 4px; font-size: 14px; }
+input, textarea { padding: 8px; border: 1px solid #ccd; border-radius: 6px; font: inherit; }
+button { padding: 8px 16px; border: 0; border-radius: 6px; background: #4f46e5; color: #fff; cursor: pointer; font: inherit; }
+button:disabled { opacity: .6; }
+.tabela { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid #eee; }
+.erro { color: #b91c1c; }
+.sucesso { color: #15803d; }
